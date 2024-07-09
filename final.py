@@ -1,11 +1,10 @@
-import serial # to read from serial comms
-from picamera import PiCamera # for camera module
+import serial #to read from serial comms
+from picamera import PiCamera #for camera module
 from time import sleep
 import RPi.GPIO as GPIO
 GPIO.setwarnings(False)
-
 camera = PiCamera() # allows me to control camera module
-camera.rotation = 180 # rotate by 90 degrees
+camera.rotation = 180 #rotate by 90 degrees
 
 #for incrementing later
 frame = 1
@@ -13,7 +12,6 @@ vid_num = 1
 
 #use Broadcom pin mode
 GPIO.setmode(GPIO.BCM)
-
 #setup LED pins
 R = 18
 G = 19
@@ -32,67 +30,65 @@ GPIO.setup(R, GPIO.OUT)
 GPIO.setup(G, GPIO.OUT)
 GPIO.setup(B, GPIO.OUT)
 
+def OFF_LED(): #turn off led
+          GPIO.output(R, GPIO.LOW)
+          GPIO.output(G, GPIO.LOW)
+          GPIO.output(B, GPIO.LOW)
+
+def R_LED(): #red
+          GPIO.output(R, GPIO.HIGH)
+          GPIO.output(G, GPIO.LOW)
+          GPIO.output(B, GPIO.LOW)
+
+def B_LED(): #blue
+          GPIO.output(R, GPIO.LOW)
+          GPIO.output(G, GPIO.LOW)
+          GPIO.output(B, GPIO.HIGH)
+def G_LED(): #green
+          GPIO.output(R, GPIO.LOW)
+          GPIO.output(G, GPIO.HIGH)
+          GPIO.output(B, GPIO.LOW)
+def W_LED(): #white
+          GPIO.output(R, GPIO.HIGH)
+          GPIO.output(G, GPIO.HIGH)
+          GPIO.output(B, GPIO.HIGH)
+
+def P_LED(): #purple
+          GPIO.output(R, GPIO.HIGH)
+          GPIO.output(G, GPIO.LOW)
+          GPIO.output(B, GPIO.HIGH)
+
 current_mode = "snap_mode"
 
-def OFF_LED(): # turn off
-          GPIO.output(R, GPIO.LOW)
-          GPIO.output(G, GPIO.LOW)
-          GPIO.output(B, GPIO.LOW)
-
-def R_LED(): # red
-          GPIO.output(R, GPIO.HIGH)
-          GPIO.output(G, GPIO.LOW)
-          GPIO.output(B, GPIO.LOW)
-
-def B_LED(): # blue
-          GPIO.output(R, GPIO.LOW)
-          GPIO.output(G, GPIO.LOW)
-          GPIO.output(B, GPIO.HIGH)
-def G_LED(): # green
-          GPIO.output(R, GPIO.LOW)
-          GPIO.output(G, GPIO.HIGH)
-          GPIO.output(B, GPIO.LOW)
-def W_LED(): # white
-          GPIO.output(R, GPIO.HIGH)
-          GPIO.output(G, GPIO.HIGH)
-          GPIO.output(B, GPIO.HIGH)
-
-def P_LED(): # purple
-          GPIO.output(R, GPIO.HIGH)
-          GPIO.output(G, GPIO.LOW)
-          GPIO.output(B, GPIO.HIGH)
-
-
-def get_mode(): # setting mode of files being saved, either recording or snapshot
+def get_mode():
           global current_mode
           
           while (True):
-                    if (GPIO.input(rec_mode)): #
+                    if (GPIO.input(rec_mode)):
                               B_LED()
                               current_mode = "rec_mode"
                               sleep(0.5)
                               OFF_LED()
                               return current_mode
-                    elif GPIO.input(snap_mode): #
+                    elif GPIO.input(snap_mode):
                               W_LED()
                               current_mode = "snap_mode"
                               sleep(0.5)
                               OFF_LED()
                               return current_mode
                     else:
-                              return current_mode #return previously set mode
+                              return current_mode
 
-                    sleep(0.1)
+
 
 try:
 
-          arduino = serial.Serial('/dev/ttyACM0', 115200, timeout = 1)
+          arduino = serial.Serial('/dev/ttyACM0', 115200, timeout = 1) #reading from arduino file
           arduino.flush()
           
           while True:
                     #print("checking mode...")
                     current_mode = get_mode()
-                    #mode = mode()
                     #print(f"current mode: {current_mode}")
                     BPM = arduino.readline().decode('utf-8').rstrip()
                     #print(f"Read BPM: {BPM}")
@@ -107,11 +103,10 @@ try:
                                         if (current_mode == "snap_mode"):
                                                   print("taking a pic")
                                                   # saves pic in following location with name
-                                                  camera.capture('/media/pi/31 GB Volume/image%03d.jpg' % frame)
+                                                  camera.capture('/home/pi/Documents/Camera/image%03d.jpg' % frame)
                                                   P_LED()
                                                   sleep(1)
                                                   OFF_LED()
-
                                                   frame += 1
                                                   sleep(1) #delay for 3 seconds
                                                   
@@ -119,15 +114,12 @@ try:
                                                   print("taking a vid")
                                                   G_LED()
                                                   
-                                                  video_filename = f'/media/pi/31 GB Volume/video_{vid_num:03d}.h264'
-                                                  
+                                                  video_filename = f'/home/pi/Documents/Camera/vid_{vid_num:03d}.h264'
                                                   #save video in file location
                                                   camera.start_recording(video_filename)
                                                   camera.wait_recording(3)
                                                   camera.stop_recording()
-                                                  
                                                   OFF_LED()
-                                                  
                                                   vid_num += 1
                                                   sleep(1)
                                                   
